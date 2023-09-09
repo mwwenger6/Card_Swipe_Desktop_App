@@ -1,14 +1,14 @@
+from datetime import datetime
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 from tkcalendar import Calendar
 import pyodbc
-from datetime import datetime
 
 server = 'MWDESKTOP'
 database = 'CMPSC487_Project1'
-username = 'Mwwenger'  # SQL Server username
-password = 'Thor6548?!'  # SQL Server password
+username = 'CollegeUser'  
+password = 'UIO*uio8'  
 
 connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
 cursor = connection.cursor()
@@ -18,9 +18,14 @@ id_entry = None
 date_from_entry = None
 date_to_entry = None
 user_type_entry = None
-# rows = cursor.fetchall()
-# for row in rows:
-#     print(row)
+app = None
+simulate = tk.Tk()
+simulate.title("Simulate Swipe")
+simulate.geometry("400x400")
+username_entry = None
+password_entry = None
+
+
 def clear_filters(main_app):
     global user_type_entry, id_entry, date_from_entry, date_to_entry
     user_type_entry.delete(0, tk.END)
@@ -60,7 +65,7 @@ def filter_data(main_app):
 
 
 
-def change_access(event, main_app):
+def change_access(main_app):
     selected_item = swipe_table.selection()[0]
     id = swipe_table.item(selected_item, 'values')[0]
     access_type = swipe_table.item(selected_item, 'values')[4]
@@ -108,7 +113,7 @@ def create_table(main_app, filters=""):
         change_access_data = row[4]
 
         swipe_table.insert('', 'end', values=(id, swipeType, swipeTime, userType, change_access_data))
-    swipe_table.bind('<ButtonRelease-1>', lambda event, main_app=main_app: change_access(event, main_app))
+    swipe_table.bind('<ButtonRelease-1>', lambda event, main_app=main_app: change_access(main_app))
 
 
 
@@ -117,6 +122,10 @@ def main_page():
     main_app = tk.Tk()
     main_app.title("Main Application")
     main_app.geometry("1100x400")
+
+    back_button = tk.Button(main_app, text="Back", command=lambda: login_screen(main_app))
+    back_button.pack(side=tk.TOP, padx=10, anchor=tk.W)
+
     def pick_datetime(entry):
         def set_datetime():
             selected_datetime = calendar.get_date()
@@ -197,6 +206,7 @@ def main_page():
     
 
 def login():
+    global username_entry, password_entry
     username = username_entry.get()
     password = password_entry.get()
     cursor.execute("SELECT Password FROM Logins WHERE Username = ?", (username,))
@@ -207,24 +217,81 @@ def login():
         messagebox.showerror("Login Failed", "Invalid username or password")
 
 
-app = tk.Tk()
-app.title("Login Screen")
-app.geometry("250x350")
-username_label = tk.Label(app, text="Username:")
-username_label.pack(pady=10)
-username_entry = tk.Entry(app)
-username_entry.pack(pady=5)
+def login_screen(app_screen):
+    global app, username_entry, password_entry
+    app_screen.destroy()
+    app = tk.Tk()
+    app.title("Login Screen")
+    app.geometry("250x350")
+
+    username_label = tk.Label(app, text="Username:")
+    username_label.pack(pady=10)
+    username_entry = tk.Entry(app)
+    username_entry.pack(pady=5)
+
+    password_label = tk.Label(app, text="Password:")
+    password_label.pack(pady=10)
+    password_entry = tk.Entry(app, show="*")  # Passwords are hidden with asterisks
+    password_entry.pack(pady=5)
+
+    login_button = tk.Button(app, text="Login", command=login)
+    login_button.pack(pady=10)
+
+    simulate_swipe_button = tk.Button(app, text="Simulate Swipe", command=simulate_swipe)
+    simulate_swipe_button.pack(pady=10)
 
 
-password_label = tk.Label(app, text="Password:")
-password_label.pack(pady=10)
-password_entry = tk.Entry(app, show="*")  # Passwords are hidden with asterisks
-password_entry.pack(pady=5)
+def submit_swipe(swipe):
+    id_num = swipe.get()
+    cursor.execute("SELECT UserId, AccessId, IsSwipedIn FROM Users WHERE IdNumber = ?", (id_num,))
+    user = cursor.fetchone()
+    if user:
+        user_id = user[0]
+        access_id = user[1]
+        is_swiped_in = user[2]
+        
+        if access_id == 1:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Format the timestamp
+            if is_swiped_in:
+                cursor.execute(f"INSERT INTO Swipes VALUES(0, {user_id}, '{timestamp}')")
+                cursor.execute(f"UPDATE Users SET IsSwipedIn = 0 WHERE UserId = {user_id}")
+            else:
+                cursor.execute(f"INSERT INTO Swipes VALUES (1, {user_id}, '{timestamp}')")
+                cursor.execute(f"UPDATE Users SET IsSwipedIn = 1 WHERE UserId = {user_id}")
+            connection.commit()
+        else:
+            messagebox.showerror("Swipe Failed", "User is Suspended or Terminated")
+    else:
+        messagebox.showerror("Swipe Failed", "Invalid User")
+    swipe.delete(0, tk.END)
 
-login_button = tk.Button(app, text="Login", command=login)
-login_button.pack(pady=10)
 
+
+def simulate_swipe():
+    global app
+    app.destroy()
+
+    global simulate
+    simulate = tk.Tk()
+    simulate.title("Simulate Swipe")
+    simulate.geometry("350x120")
+
+    back_button = tk.Button(simulate, text="Back", command=lambda: login_screen(simulate))
+    back_button.pack(side=tk.TOP, padx=10, anchor=tk.W)
+
+    swipe_frame = tk.Frame(simulate)
+    swipe_frame.pack(side=tk.TOP, fill=tk.X)
+    swipe_label = tk.Label(simulate, text="User Type:")
+    swipe_label.pack(side=tk.LEFT, pady=5, padx=11)
+    swipe_entry = tk.Entry(simulate)
+    swipe_entry.pack(side=tk.LEFT, pady=5, padx=11)
+    submit_button = tk.Button(simulate, text="Submit", command=lambda:submit_swipe(swipe_entry))
+    submit_button.pack(side=tk.LEFT, pady=5, padx=11)
+
+login_screen(simulate)
 
 app.mainloop()
 cursor.close()
 connection.close()
+
+

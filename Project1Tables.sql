@@ -11,6 +11,7 @@ CREATE TABLE Users(
 	[UserTypeId] int,
 	[IdNumber] nvarchar(14),
 	[AccessId] int,
+	[IsSwipedIn] bit,
 	FOREIGN KEY ([UserTypeId]) REFERENCES UserTypes([UserTypeId]),
     FOREIGN KEY ([AccessId]) REFERENCES Accesses([AccessId])
 )
@@ -50,13 +51,13 @@ INSERT INTO Accesses VALUES('Active'),('Suspended'),('Deactivated')
 INSERT INTO UserTypes VALUES('Student'),('Faculty'),('Staff'),('Janitor')
 -----------Users-------------
 --Students
-INSERT INTO Users VALUES(1, '986532147', 1), (1, '986532987', 1), (1, '986452147', 1), (1, '123786789', 1),(1, '473456789', 1),(1, '123456789', 1),(1, '123786789', 1),(1, '123456747', 1),(1, '123456700', 1),(1, '123456789', 1)
+INSERT INTO Users VALUES(1, '986532147', 1, 0), (1, '986532987', 1, 0), (1, '986452147', 1, 0), (1, '123786789', 1, 0),(1, '473456789', 1, 0),(1, '123456789', 1, 0),(1, '123786789', 1, 0),(1, '123456747', 1, 0),(1, '123456700', 1, 0),(1, '123456789', 1, 0)
 --Faculty
-INSERT INTO Users VALUES(2, '31242', 1)
+INSERT INTO Users VALUES(2, '31242', 1, 0)
 --Staff
-INSERT INTO Users VALUES(3, '54363', 1)
+INSERT INTO Users VALUES(3, '54363', 1, 0)
 --Janitors
-INSERT INTO Users VALUES(4, '87546', 1)
+INSERT INTO Users VALUES(4, '87546', 1, 0)
 
 
 -----------Swipes------------
@@ -65,10 +66,12 @@ INSERT INTO Swipes VALUES(1, 1, GETDATE()),(0, 1, DATEADD(HOUR, 1, GETDATE())),(
 (1,13,DATEADD(HOUR, 20, GETDATE())), (0,13,DATEADD(HOUR, 23, GETDATE())), (1,12,DATEADD(HOUR, 39, GETDATE())), (0,12,DATEADD(HOUR, 40, GETDATE()))
 
 INSERT INTO Logins Values('Mwwenger', 'Password1!')
+
 select * from Swipes
 select * from Users
 SELECT * FROM vwSwipes ORDER BY SwipeTimeStamp DESC;
 select * from Logins
+
 --CREATE TABLE CombinedSwipesTable(
 --	[SwipeId] int IDENTITY(1,1) PRIMARY KEY,
 --	[IsSwipeIn] bit,
