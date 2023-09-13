@@ -5,10 +5,10 @@ from tkinter import ttk
 from tkcalendar import Calendar
 import pyodbc
 
-server = 'MWDESKTOP'
-database = 'CMPSC487_Project1'
-username = 'CollegeUser'  
-password = 'UIO*uio8'  
+server = '*****8'
+database = '********'
+username = '*********'  
+password = '********'  
 
 connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
 cursor = connection.cursor()
@@ -62,7 +62,6 @@ def filter_data(main_app):
         filters = "WHERE " + filters
 
     create_table(main_app, filters)
-
 
 
 def change_access(main_app):
