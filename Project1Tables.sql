@@ -47,6 +47,16 @@ FROM
     LEFT OUTER JOIN UserTypes AS ut ON ut.UserTypeId = u.UserTypeId;
 
 
+CREATE PROCEDURE DeleteOldSwipes
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @FiveYearsAgo DateTime;
+    SET @FiveYearsAgo = DATEADD(YEAR, -5, GETDATE());
+    DELETE FROM Swipes
+    WHERE SwipeTimeStamp < @FiveYearsAgo;
+END;
+
 INSERT INTO Accesses VALUES('Active'),('Suspended'),('Deactivated')
 INSERT INTO UserTypes VALUES('Student'),('Faculty'),('Staff'),('Janitor')
 -----------Users-------------
